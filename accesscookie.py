@@ -1,11 +1,10 @@
 import requests
-from init import getInitialCookie
+from bs4 import BeautifulSoup
 from hiddencookie import get_hidden_xsrf
 
 
 
-
-def authCookie(user,password):
+def authCookie(user, password):
 
     url = 'https://wds-prd.rvei.edu.in:4430/sap/bc/ui5_ui5/ui2/ushell/shells/abap/Fiorilaunchpad.html'
 
@@ -28,10 +27,10 @@ def authCookie(user,password):
         'sec-ch-ua-platform': '"macOS"',
     }
 
-    cookies = {
-        'sap-usercontext': 'sap-client=700',
-        'sap-login-XSRF_FEP': getInitialCookie()[1],
-    }
+
+    session = requests.Session()
+
+    xsrf_token = get_hidden_xsrf(session, url, 'sap-login-XSRF')
 
     data = {
         'sap-user': user,
@@ -42,19 +41,16 @@ def authCookie(user,password):
         'sap-system-login': 'onLogin',
         'sap-system-login-basic_auth': '',
         'sap-accessibility': '',
-         'sap-login-XSRF': get_hidden_xsrf(getInitialCookie()[0], 'sap-login-XSRF'),
+        'sap-login-XSRF': xsrf_token,
         'sap-system-login-cookie_disabled': '',
         'sap-hash': '',
         'sap-language': 'EN',
     }
 
-    response = requests.post(url, headers=headers, cookies=cookies, data=data, verify=True)
+    response = session.post(url, headers=headers, data=data, verify=True)
 
-    print(response.status_code)
-    print(response.cookies)
-
-
-authCookie('RVCE23BCS029', 'iloveprateek')
-
+    for cookie in session.cookies:
+        if 'SAP_SESSIONID_FEP_700' in cookie.name:
+            return cookie.value
 
 
