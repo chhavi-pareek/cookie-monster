@@ -1,6 +1,5 @@
 import requests
-from bs4 import BeautifulSoup
-from hiddencookie import get_hidden_xsrf
+from authentication.hiddencookie import get_hidden_xsrf
 
 
 
@@ -52,5 +51,6 @@ def authCookie(user, password):
     for cookie in session.cookies:
         if 'SAP_SESSIONID_FEP_700' in cookie.name:
             return cookie.value
+            
 
 

@@ -1,18 +1,17 @@
 import requests
-from accesscookie import authCookie
 import json
 
-def marks(course_id):
+def displayMarks(cookie):
 
-    url = f'https://fes-prd1.rvei.edu.in:4430/sap/opu/odata/sap/PIQ_COURSE_RESULTS_SRV/CourseResultSet(CourseID=\'{course_id}\',AcadYearID=\'2023\',CLASS=\'ODD\',SessionID=\'901\',ProgramOfStudyID=\'00000000\',ProgramType=\'REGU\')?$expand=BookedEvents,DetailedAppraisals,CourseDetails,CourseContact,OtherCoursesModule,OtherCoursesProf&sap-client=700'
-    
+    url = 'https://wds-prd.rvei.edu.in:4430/sap/opu/odata/sap/PIQ_COURSE_RESULTS_SRV/CourseResultSet?$skip=0&$top=100&$inlinecount=allpages&sap-client=700'
+
     headers = {
         'Accept': 'application/json',
         'Accept-Language': 'en',
         'Connection': 'keep-alive',
         'DataServiceVersion': '2.0',
         'MaxDataServiceVersion': '2.0',
-        'Referer': 'https://fes-prd1.rvei.edu.in:4430/sap/bc/ui5_ui5/ui2/ushell/shells/abap/Fiorilaunchpad.html?sap-client=700&sap-language=EN',
+        'Referer': 'https://wds-prd.rvei.edu.in:4430/sap/bc/ui5_ui5/ui2/ushell/shells/abap/FioriLaunchpad.html?sap-client=700&sap-language=EN',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-origin',
@@ -26,7 +25,7 @@ def marks(course_id):
 
     cookies = {
         'sap-usercontext': 'sap-language=EN&sap-client=700',
-        'SAP_SESSIONID_FEP_700': authCookie('RVCE23BCS029', 'iloveprateek')
+        'SAP_SESSIONID_FEP_700': cookie
     }
 
     response = requests.get(url, headers=headers, cookies=cookies, verify=False)
@@ -37,20 +36,17 @@ def marks(course_id):
     response_data = json.loads(response.text)
     
 
-    detailed_appraisals = response_data.get('d', {}).get('DetailedAppraisals', {}).get('results', [])
+    results = response_data.get('d', {}).get('results', [])
 
     marks_data = {}
-    for appraisal in detailed_appraisals:
-        field_name = appraisal.get('AppraisalType', 'Unknown Field')
-        marks = appraisal.get('Result', 'N/A')
-        marks_data[field_name] = marks
-    
+    for course in results:
+        course_name = course.get('CourseName', 'Unknown Course')
+        marks = course.get('Results', 'N/A')
+        marks_data[course_name] = marks
 
-    for field, mark in marks_data.items():
-        print(f"{field}: {mark}")
+
+    for course, mark in marks_data.items():
+        print(f"{course}: {mark}")
     
     return marks_data
-    
 
-
-marks(50170698)
